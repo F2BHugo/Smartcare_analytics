@@ -53,17 +53,38 @@ def load_data(mode_selection):
     if "Classique" in mode_selection:
         try:
             df = pd.read_csv("dataset_hebdo_2010-2016.csv")
-            # Correction des noms de colonnes : 'Date', 'Passages_Hebdo'
             df['Date'] = pd.to_datetime(df['Date'])
             if 'Passages_Hebdo' in df.columns:
                 df = df.rename(columns={'Passages_Hebdo': 'Passages'})
             elif 'passages_urgences' in df.columns:
-                 df = df.rename(columns={'passages_urgences': 'Passages'})
+                df = df.rename(columns={'passages_urgences': 'Passages'})
             
             df = df.rename(columns={'Lits_Capacite': 'Lits', 'Indice_Tension': 'Tension'})
             return df.sort_values('Date')
         except FileNotFoundError:
             return pd.DataFrame()
+    
+    elif "Grève" in mode_selection:
+        try:
+            df = pd.read_csv("dataset_hebdo_2010-2016.csv")
+            df['Date'] = pd.to_datetime(df['Date'])
+            if 'Passages_Hebdo' in df.columns:
+                df = df.rename(columns={'Passages_Hebdo': 'Passages'})
+            elif 'passages_urgences' in df.columns:
+                df = df.rename(columns={'passages_urgences': 'Passages'})
+            
+            df = df.rename(columns={'Lits_Capacite': 'Lits', 'Indice_Tension': 'Tension'})
+            
+            # Simulation impact Grève : Réduction de 25% de la capacité
+            df['Lits'] = df['Lits'] * 0.75
+            # Recalcul indicatif de la tension (si Passages > Lits, tension augmente)
+            # On garde la tension d'origine pour comparaison ou on pourrait l'ajuster
+            # Ici on laisse la visualisation Lits vs Passages faire le travail
+            
+            return df.sort_values('Date')
+        except FileNotFoundError:
+            return pd.DataFrame()
+
     else:
         try:
             df = pd.read_csv("dataset_hebdo_psl_covid_2019_2021.csv")
@@ -75,7 +96,7 @@ def load_data(mode_selection):
 
 # Sidebar
 st.sidebar.header("Paramètres Pilotage")
-mode = st.sidebar.radio("Contexte", ("Fonctionnement Classique (2010-2016)", "Gestion de Crise (2019-2021)"))
+mode = st.sidebar.radio("Contexte", ("Fonctionnement Classique (2010-2016)", "Gestion de Crise (2019-2021)", "Simulation Grève / Tension RH"))
 
 df = load_data(mode)
 
